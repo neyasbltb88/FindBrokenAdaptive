@@ -1,5 +1,5 @@
 const borrowStyles = [
-    // 'display',
+    'display',
     'position',
     'top',
     'right',
@@ -26,12 +26,13 @@ const borrowStyles = [
     'verticalAlign',
     'float',
     'alignmentBaseline',
-    'blockSize',
     'visibility',
-    'zIndex'
+    'zIndex',
+    // 'blockSize',
 ];
 
 const replaceTargetStyles = {
+    'position': 'static',
     'marginTop': 0,
     'marginRight': 0,
     'marginBottom': 0,
@@ -41,8 +42,10 @@ const replaceTargetStyles = {
     'right': 0,
     'bottom': 0,
     'left': 0,
-    // 'width': '100%',
-    // 'height': '100%'
+    'width': 'auto',
+    'height': 'auto',
+    'flexBasis': '100%',
+    'flexGrow': 1,
 };
 
 class FindBrokenAdaptive {
@@ -94,7 +97,34 @@ class FindBrokenAdaptive {
 
     _borrowingStyle() {
         let buildStyle = '';
-        let computedStyle = getComputedStyle(this.lastTarget);
+        let computedStyle = {
+            ...getComputedStyle(this.lastTarget)
+        };
+
+        // let {
+        //     width,
+        //     height
+        // } = this.lastTarget.getBoundingClientRect();
+
+        // console.log(`width: ${width}; height: ${height}`);
+
+        let width = parseFloat(computedStyle.width) +
+            parseFloat(computedStyle.paddingLeft) +
+            parseFloat(computedStyle.paddingRight) +
+            parseFloat(computedStyle.borderLeftWidth) +
+            parseFloat(computedStyle.borderRightWidth) +
+            'px'
+
+        let height = parseFloat(computedStyle.height) +
+            parseFloat(computedStyle.paddingTop) +
+            parseFloat(computedStyle.paddingBottom) +
+            parseFloat(computedStyle.borderTopWidth) +
+            parseFloat(computedStyle.borderBottomWidth) +
+            'px'
+
+        computedStyle.width = width;
+        computedStyle.height = height;
+
         this.borrowStyles.forEach(style => {
             buildStyle += `${this._camelToKebab(style)}: ${computedStyle[style]}; `;
         });
