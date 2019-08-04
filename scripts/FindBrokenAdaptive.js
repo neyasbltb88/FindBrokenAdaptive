@@ -1,13 +1,67 @@
+const borrowStyles = [
+    // 'display',
+    'position',
+    'top',
+    'right',
+    'bottom',
+    'left',
+    'width',
+    'maxWidth',
+    'minWidth',
+    'height',
+    'maxHeight',
+    'minHeight',
+    'marginTop',
+    'marginRight',
+    'marginBottom',
+    'marginLeft',
+    'flexBasis',
+    'flexGrow',
+    'flexShrink',
+    'justifySelf',
+    'alignSelf',
+    'order',
+    'boxSizing',
+    'lineHeight',
+    'verticalAlign',
+    'float',
+    'alignmentBaseline',
+    'blockSize',
+    'visibility',
+    'zIndex'
+];
+
+const replaceTargetStyles = {
+    'marginTop': 0,
+    'marginRight': 0,
+    'marginBottom': 0,
+    'marginLeft': 0,
+    'margin': 0,
+    'top': 0,
+    'right': 0,
+    'bottom': 0,
+    'left': 0,
+    // 'width': '100%',
+    // 'height': '100%'
+};
+
 class FindBrokenAdaptive {
     constructor(colors) {
         this.colors = colors;
         this.wrapperEl = null;
         this.nodeKeeper = null;
         this.lastTarget = null;
+        this.lastTargetStyles = null;
         this.hoverHandler = this._hoverHandler.bind(this);
+        this.borrowStyles = borrowStyles;
+        this.replaceTargetStyles = replaceTargetStyles;
 
         this.init();
         this.start();
+    }
+
+    _camelToKebab(string) {
+        return string.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
     }
 
     _hoverHandler(event) {
@@ -19,6 +73,7 @@ class FindBrokenAdaptive {
 
         this.lastTarget = el;
         el.before(this.wrapperEl);
+        this._borrowingStyle();
         this.wrapperEl.appendChild(el);
         let elClasses = '.' + [...el.classList].join('.');
         this.wrapperEl.setAttribute('data-targetclass', elClasses);
@@ -28,9 +83,27 @@ class FindBrokenAdaptive {
     _restoreElems() {
         if (this.lastTarget) {
             this.nodeKeeper.appendChild(this.lastTarget);
+            this.lastTarget.style.cssText = this.lastTargetStyles;
+            this.lastTargetStyles = null;
             this.wrapperEl.before(this.lastTarget);
             this.lastTarget = null;
+            this.wrapperEl.removeAttribute('style');
             this.nodeKeeper.appendChild(this.wrapperEl);
+        }
+    }
+
+    _borrowingStyle() {
+        let buildStyle = '';
+        let computedStyle = getComputedStyle(this.lastTarget);
+        this.borrowStyles.forEach(style => {
+            buildStyle += `${this._camelToKebab(style)}: ${computedStyle[style]}; `;
+        });
+
+        this.wrapperEl.setAttribute('style', buildStyle);
+
+        this.lastTargetStyles = this.lastTarget.style.cssText;
+        for (let style in this.replaceTargetStyles) {
+            this.lastTarget.style[style] = this.replaceTargetStyles[style];
         }
     }
 
